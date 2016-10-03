@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPChatRoomProjectServerSide", "TCPChatRoomProjectServerSide\TCPChatRoomProjectServerSide.csproj", "{E3091C43-6551-4113-B32E-411DF1AC825E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPChatRoomProjectClientSide", "TCPChatRoomProjectClientSide\TCPChatRoomProjectClientSide.csproj", "{EBDC6B22-7847-4D79-B2C0-1056838BF75C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E3091C43-6551-4113-B32E-411DF1AC825E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3091C43-6551-4113-B32E-411DF1AC825E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3091C43-6551-4113-B32E-411DF1AC825E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBDC6B22-7847-4D79-B2C0-1056838BF75C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBDC6B22-7847-4D79-B2C0-1056838BF75C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBDC6B22-7847-4D79-B2C0-1056838BF75C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBDC6B22-7847-4D79-B2C0-1056838BF75C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
