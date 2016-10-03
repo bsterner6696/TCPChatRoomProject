@@ -46,7 +46,21 @@ namespace TCPChatRoomProjectServerSide
             }
             dictionary.ClientsByName.Add(nickName, client);
             dictionary.ClientsByNumber.Add(client, nickName);
+            server.SendSystemMessageToAll(nickName + " has joined the room");
+            Thread chatThread = new Thread(() => RunChat(server, nickName));
+            chatThread.Start();
 
+
+        }
+
+        private void RunChat(Server server, string nickName)
+        {
+            string line = "";
+            while (true)
+            {
+                line = reader.reader.ReadLine();
+                server.SendMessageToAll(nickName, line);
+            }
         }
     }
 }
