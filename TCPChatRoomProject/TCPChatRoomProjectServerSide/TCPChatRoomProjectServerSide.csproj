@@ -46,7 +46,10 @@
     <Compile Include="Listener.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="userDictionary.cs" />
+    <Compile Include="Reader.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="UserDictionary.cs" />
+    <Compile Include="Writer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
