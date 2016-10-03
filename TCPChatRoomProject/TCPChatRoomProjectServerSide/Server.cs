@@ -72,7 +72,7 @@ namespace TCPChatRoomProjectServerSide
             writer = null;
         }
 
-        public void ConnectClient()
+        public void ConnectClients()
         {
             while (true)
             {
@@ -80,7 +80,7 @@ namespace TCPChatRoomProjectServerSide
                 if (listener.serverListener.Pending())
                 {
                     Chat.Sockets.TcpClient connectedClient = listener.serverListener.AcceptTcpClient();
-                    
+                    ChatRoom chatRoom = new ChatRoom(connectedClient, userDictionary, this);
                 }
             }
         }
