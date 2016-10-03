@@ -14,6 +14,7 @@ namespace TCPChatRoomProjectServerSide
     public class userDictionary
     {
         public Dictionary<string, Chat.Sockets.TcpClient> ClientsByName = new Dictionary<string, Chat.Sockets.TcpClient>();
+
         public Dictionary<Chat.Sockets.TcpClient, string> ClientsByNumber = new Dictionary<Chat.Sockets.TcpClient, string>(); 
     }
 }
