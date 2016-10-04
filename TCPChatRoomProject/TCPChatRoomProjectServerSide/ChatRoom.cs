@@ -33,20 +33,26 @@ namespace TCPChatRoomProjectServerSide
 
         public void EnterChat(TcpClient client, UserDictionary dictionary, Server server)
         {
-            
-            server.SendSystemMessage(client, "You're a real bugel boy.");
-            Thread.Sleep(1);
-            string nickName = GetNickName(client, server);
-            while (dictionary.ClientsByName.ContainsKey(nickName))
+
+            try
             {
-                server.SendSystemMessage(client, "Enter a different name");
-                nickName = GetNickName(client, server);
+                server.SendSystemMessage(client, "You're a real bugel boy.");
+                string nickName = GetNickName(client, server);
+                while (dictionary.ClientsByName.ContainsKey(nickName))
+                {
+                    server.SendSystemMessage(client, "Enter a different name");
+                    nickName = GetNickName(client, server);
+                }
+                dictionary.ClientsByName.Add(nickName, client);
+                dictionary.ClientsByNumber.Add(client, nickName);
+                server.SendSystemMessageToAll(nickName + " has joined the room");
+                Thread chatThread = new Thread(() => RunChat(server, nickName, client));
+                chatThread.Start();
             }
-            dictionary.ClientsByName.Add(nickName, client);
-            dictionary.ClientsByNumber.Add(client, nickName);
-            server.SendSystemMessageToAll(nickName + " has joined the room");
-            Thread chatThread = new Thread(() => RunChat(server, nickName, client));
-            chatThread.Start();
+            catch
+            {
+                
+            }
 
 
         }

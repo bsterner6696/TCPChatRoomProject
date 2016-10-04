@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using System.Threading;
-using Chat = System.Net;
+using System.Net.Sockets;
 
 
 namespace TCPChatRoomProjectServerSide
 {
     public class UserDictionary
     {
-        public Dictionary<string, Chat.Sockets.TcpClient> ClientsByName = new Dictionary<string, Chat.Sockets.TcpClient>();
+        public Dictionary<string, TcpClient> ClientsByName = new Dictionary<string, TcpClient>();
 
-        public Dictionary<Chat.Sockets.TcpClient, string> ClientsByNumber = new Dictionary<Chat.Sockets.TcpClient, string>(); 
+        public Dictionary<TcpClient, string> ClientsByNumber = new Dictionary<TcpClient, string>(); 
     }
 }

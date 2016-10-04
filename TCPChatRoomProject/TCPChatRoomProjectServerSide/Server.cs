@@ -68,11 +68,21 @@ namespace TCPChatRoomProjectServerSide
         }
         public void SendSystemMessage(TcpClient client, string message)
         {
-            NetworkStream network = client.GetStream();
-            StreamWriter writer = new StreamWriter(client.GetStream());
-            writer.WriteLine(message);
-            writer.Flush();
-            writer = null;
+            try
+            {
+                NetworkStream network = client.GetStream();
+                StreamWriter writer = new StreamWriter(client.GetStream());
+                writer.WriteLine(message);
+                writer.Flush();
+                writer = null;
+            }
+            catch
+            {
+                string userName = userDictionary.ClientsByNumber[client];
+                SendSystemMessageToAll(userName + " has left the chat.");
+                userDictionary.ClientsByName.Remove(userDictionary.ClientsByNumber[client]);
+                userDictionary.ClientsByNumber.Remove(client);
+            }
 
         }
 
@@ -85,10 +95,9 @@ namespace TCPChatRoomProjectServerSide
                     listener.serverListener.Start();
 
                     TcpClient connectedClient = listener.serverListener.AcceptTcpClient();
-                    //Console.WriteLine(ProcessClientRequest(connectedClient));
                     ChatRoom chatRoom = new ChatRoom(connectedClient, userDictionary, this);
                 }
-                catch (Exception e44)
+                catch
                 {
                     continue;
                    
@@ -98,13 +107,24 @@ namespace TCPChatRoomProjectServerSide
 
         public string ReadMessage(TcpClient tcpclient)
         {
-            TcpClient client = tcpclient;
-            NetworkStream network = client.GetStream();
-            StreamReader reader = new StreamReader(client.GetStream());
-            string message = reader.ReadLine();
-            reader = null;
+            try
+            {
+                TcpClient client = tcpclient;
+                NetworkStream network = client.GetStream();
+                StreamReader reader = new StreamReader(client.GetStream());
+                string message = reader.ReadLine();
+                reader = null;
 
-            return message;
+                return message;
+            }
+            catch
+            {
+                string userName = userDictionary.ClientsByNumber[tcpclient];
+                string leavingMessage = userName + " has left the chat.";
+                userDictionary.ClientsByName.Remove(userDictionary.ClientsByNumber[tcpclient]);
+                userDictionary.ClientsByNumber.Remove(tcpclient);
+                return leavingMessage;
+            }
         }
 
         public static string ProcessClientRequest(TcpClient tcpclient)
