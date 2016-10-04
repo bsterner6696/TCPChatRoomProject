@@ -27,7 +27,7 @@ namespace TCPChatRoomProjectServerSide
                 {
                     SendMessage(clients[number], nickName, message);
                 }
-                catch 
+                catch
                 {
                     string userName = userDictionary.ClientsByNumber[clients[number]];
                     SendSystemMessageToAll(userName + " has left the chat.");

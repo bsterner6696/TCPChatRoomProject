@@ -18,6 +18,7 @@ namespace TCPChatRoomProjectClientSide
 
         public void ConnectToServer()
         {
+            client.Connect("10.2.20.18", 8000);
             reader = new StreamReader(client.GetStream());
             writer = new StreamWriter(client.GetStream());
 
@@ -27,6 +28,7 @@ namespace TCPChatRoomProjectClientSide
         {
             string line;
             line = Console.ReadLine();
+            writer = new StreamWriter(client.GetStream());
             writer.WriteLine(line);
         }
         public void RunClient()

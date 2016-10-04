@@ -15,7 +15,7 @@ namespace TCPChatRoomProjectServerSide
     {
         Reader reader = new Reader();
         Writer writer = new Writer();
-        System.Net.Sockets.TcpClient client;
+        System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
 
         public ChatRoom(System.Net.Sockets.TcpClient tcpClient, UserDictionary dictionary, Server server)
         {
@@ -38,6 +38,7 @@ namespace TCPChatRoomProjectServerSide
             reader.reader = new StreamReader(client.GetStream());
             writer.writer = new StreamWriter(client.GetStream());
             writer.writer.WriteLine("You're a real bugel boy.");
+            writer.writer.Flush();
             string nickName = GetNickName(client);
             while (dictionary.ClientsByName.ContainsKey(nickName))
             {
@@ -55,11 +56,18 @@ namespace TCPChatRoomProjectServerSide
 
         private void RunChat(Server server, string nickName)
         {
-            string line = "";
-            while (true)
+            try
             {
-                line = reader.reader.ReadLine();
-                server.SendMessageToAll(nickName, line);
+                string line = "";
+                while (true)
+                {
+                    line = reader.reader.ReadLine();
+                    server.SendMessageToAll(nickName, line);
+                }
+            }
+            catch (Exception e44)
+            {
+                Console.WriteLine(e44);
             }
         }
     }
