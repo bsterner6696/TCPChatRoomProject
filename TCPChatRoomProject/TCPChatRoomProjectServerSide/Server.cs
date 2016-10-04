@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
-using Chat = System.Net;
+using System.Collections;
 
 namespace TCPChatRoomProjectServerSide
 {
@@ -14,12 +15,10 @@ namespace TCPChatRoomProjectServerSide
     {
         UserDictionary userDictionary = new UserDictionary();
         Listener listener = new Listener();
-        Writer writer = new Writer();
-        Reader reader = new Reader();
 
         public void SendMessageToAll(string nickName, string message)
         {
-            Chat.Sockets.TcpClient[] clients = new Chat.Sockets.TcpClient[userDictionary.ClientsByName.Count];
+            TcpClient[] clients = new TcpClient[userDictionary.ClientsByName.Count];
             userDictionary.ClientsByName.Values.CopyTo(clients, 0);
             for (int number = 0; number < clients.Length; number++)
             {
@@ -38,17 +37,20 @@ namespace TCPChatRoomProjectServerSide
             }
         }
 
-        public void SendMessage(Chat.Sockets.TcpClient client, string nickName, string message)
+        public void SendMessage(TcpClient client, string nickName, string message)
         {
-            writer.writer = new StreamWriter(client.GetStream());
-            writer.writer.WriteLine("{0}: {1}", nickName, message);
-            writer.writer.Flush();
+            string textToSend = nickName + ": " +  message;
+            NetworkStream network = client.GetStream();
+            StreamWriter writer = new StreamWriter(client.GetStream());
+            writer.WriteLine(textToSend);
+            writer.Flush();
             writer = null;
+
         }
 
         public void SendSystemMessageToAll(string message)
         {
-            Chat.Sockets.TcpClient[] clients = new Chat.Sockets.TcpClient[userDictionary.ClientsByName.Count];
+            TcpClient[] clients = new TcpClient[userDictionary.ClientsByName.Count];
             userDictionary.ClientsByName.Values.CopyTo(clients, 0);
             for (int number = 0; number < clients.Length; number++)
             {
@@ -64,25 +66,59 @@ namespace TCPChatRoomProjectServerSide
                 }
             }
         }
-        public void SendSystemMessage(Chat.Sockets.TcpClient client, string message)
+        public void SendSystemMessage(TcpClient client, string message)
         {
-            writer.writer = new StreamWriter(client.GetStream());
-            writer.writer.Write(message);
-            writer.writer.Flush();
+            NetworkStream network = client.GetStream();
+            StreamWriter writer = new StreamWriter(client.GetStream());
+            writer.WriteLine(message);
+            writer.Flush();
             writer = null;
+
         }
 
         public void ConnectClients()
         {
             while (true)
             {
-                listener.serverListener.Start();
-                if (listener.serverListener.Pending())
+                try
                 {
-                    Chat.Sockets.TcpClient connectedClient = listener.serverListener.AcceptTcpClient();
+                    listener.serverListener.Start();
+
+                    TcpClient connectedClient = listener.serverListener.AcceptTcpClient();
+                    //Console.WriteLine(ProcessClientRequest(connectedClient));
                     ChatRoom chatRoom = new ChatRoom(connectedClient, userDictionary, this);
                 }
+                catch (Exception e44)
+                {
+                    continue;
+                   
+                }
             }
+        }
+
+        public string ReadMessage(TcpClient tcpclient)
+        {
+            TcpClient client = tcpclient;
+            NetworkStream network = client.GetStream();
+            StreamReader reader = new StreamReader(client.GetStream());
+            string message = reader.ReadLine();
+            reader = null;
+
+            return message;
+        }
+
+        public static string ProcessClientRequest(TcpClient tcpclient)
+        {
+            
+            TcpClient client = tcpclient;
+            NetworkStream network = client.GetStream();
+            StreamReader reader = new StreamReader(client.GetStream());
+            string message = reader.ReadLine();
+            reader = null;
+
+            return message;
+            
+            
         }
     }
 }

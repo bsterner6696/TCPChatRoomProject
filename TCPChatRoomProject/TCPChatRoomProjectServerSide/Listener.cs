@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Threading;
-using Chat = System.Net;
+using System.Net.Sockets;
 
 namespace TCPChatRoomProjectServerSide
 {
     public class Listener
     {
-        public System.Net.Sockets.TcpListener serverListener = new System.Net.Sockets.TcpListener(IPAddress.Parse("10.2.20.18"), 8000);
+        public TcpListener serverListener = new TcpListener(IPAddress.Any, 8002);
 
     }
 }

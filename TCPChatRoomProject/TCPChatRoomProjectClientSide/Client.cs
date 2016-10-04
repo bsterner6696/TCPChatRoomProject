@@ -6,38 +6,66 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 using System.Net;
-using Chat = System.Net;
+using System.Net.Sockets;
 
 namespace TCPChatRoomProjectClientSide
 {
     class Client
     {
-        System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient("10.2.20.18", 8000);
-        StreamReader reader;
-        StreamWriter writer;
+        TcpClient client = new TcpClient("10.2.20.18", 8002);
+        
 
         public void ConnectToServer()
         {
-            client.Connect("10.2.20.18", 8000);
-            reader = new StreamReader(client.GetStream());
-            writer = new StreamWriter(client.GetStream());
+            
+            NetworkStream networkStream = client.GetStream();
 
         }
 
         public void WriteMessage()
         {
-            string line;
-            line = Console.ReadLine();
-            writer = new StreamWriter(client.GetStream());
-            writer.WriteLine(line);
+            NetworkStream network = client.GetStream();
+            StreamWriter writer = new StreamWriter(client.GetStream());
+            string message = Console.ReadLine();
+            writer.WriteLine(message);
+            writer.Flush();
+            writer = null;
         }
-        public void RunClient()
+        public void ReadMessage()
         {
-            ConnectToServer();
+            NetworkStream network = client.GetStream();
+            StreamReader reader = new StreamReader(client.GetStream());
+            string message = "";
+            message = reader.ReadLine();
+            if (message != "")
+            {
+                Console.WriteLine(message);
+            }
+            reader = null;
+        }
+        public void WriteMessages()
+        {
             while (true)
             {
                 WriteMessage();
             }
+        }
+
+        public void ReadMessages()
+        {
+            while (true)
+            {
+                ReadMessage();
+            }
+        }
+        public void RunClient()
+        {
+
+            
+                Thread writeThread = new Thread(() => WriteMessages());
+                writeThread.Start();
+                Thread readThread = new Thread(() => ReadMessages());
+                readThread.Start();
         }
     }
 }

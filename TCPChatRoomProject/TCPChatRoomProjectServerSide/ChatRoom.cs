@@ -6,62 +6,59 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Threading;
-using Chat = System.Net;
+using System.Net.Sockets;
 
 
 namespace TCPChatRoomProjectServerSide
 {
     public class ChatRoom
     {
-        Reader reader = new Reader();
-        Writer writer = new Writer();
-        System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
 
-        public ChatRoom(System.Net.Sockets.TcpClient tcpClient, UserDictionary dictionary, Server server)
+        TcpClient client = new TcpClient();
+
+        public ChatRoom(TcpClient tcpClient, UserDictionary dictionary, Server server)
         {
             client = tcpClient;
 
             Thread chatThread = new Thread(() => EnterChat(client, dictionary, server));
             chatThread.Start();
         }
-        private string GetNickName(System.Net.Sockets.TcpClient client)
+        private string GetNickName(TcpClient client, Server server)
         {
-            writer.writer = new StreamWriter(client.GetStream());
-            reader.reader = new StreamReader(client.GetStream());
-            writer.writer.WriteLine("What's your name? ");
-            writer.writer.Flush();
-            return reader.reader.ReadLine();
+
+            server.SendSystemMessage(client, "Enter your name.");
+
+            return server.ReadMessage(client);
         }
 
-        public void EnterChat(System.Net.Sockets.TcpClient client, UserDictionary dictionary, Server server)
+        public void EnterChat(TcpClient client, UserDictionary dictionary, Server server)
         {
-            reader.reader = new StreamReader(client.GetStream());
-            writer.writer = new StreamWriter(client.GetStream());
-            writer.writer.WriteLine("You're a real bugel boy.");
-            writer.writer.Flush();
-            string nickName = GetNickName(client);
+            
+            server.SendSystemMessage(client, "You're a real bugel boy.");
+            Thread.Sleep(1);
+            string nickName = GetNickName(client, server);
             while (dictionary.ClientsByName.ContainsKey(nickName))
             {
-                writer.writer.WriteLine("Pick a different name.");
-                nickName = GetNickName(client);
+                server.SendSystemMessage(client, "Enter a different name");
+                nickName = GetNickName(client, server);
             }
             dictionary.ClientsByName.Add(nickName, client);
             dictionary.ClientsByNumber.Add(client, nickName);
             server.SendSystemMessageToAll(nickName + " has joined the room");
-            Thread chatThread = new Thread(() => RunChat(server, nickName));
+            Thread chatThread = new Thread(() => RunChat(server, nickName, client));
             chatThread.Start();
 
 
         }
 
-        private void RunChat(Server server, string nickName)
+        private void RunChat(Server server, string nickName, TcpClient client)
         {
             try
             {
                 string line = "";
                 while (true)
                 {
-                    line = reader.reader.ReadLine();
+                    line = server.ReadMessage(client);
                     server.SendMessageToAll(nickName, line);
                 }
             }
