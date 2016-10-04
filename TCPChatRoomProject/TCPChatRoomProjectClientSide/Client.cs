@@ -14,14 +14,6 @@ namespace TCPChatRoomProjectClientSide
     {
         TcpClient client = new TcpClient("10.2.20.18", 8002);
         
-
-        public void ConnectToServer()
-        {
-            
-            NetworkStream networkStream = client.GetStream();
-
-        }
-
         public void WriteMessage()
         {
             NetworkStream network = client.GetStream();

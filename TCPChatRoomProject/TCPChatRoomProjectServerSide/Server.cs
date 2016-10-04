@@ -14,7 +14,7 @@ namespace TCPChatRoomProjectServerSide
     public class Server
     {
         UserDictionary userDictionary = new UserDictionary();
-        Listener listener = new Listener();
+        TcpListener serverListener = new TcpListener(IPAddress.Any, 8002);
 
         public void SendMessageToAll(string nickName, string message)
         {
@@ -92,9 +92,9 @@ namespace TCPChatRoomProjectServerSide
             {
                 try
                 {
-                    listener.serverListener.Start();
+                    serverListener.Start();
 
-                    TcpClient connectedClient = listener.serverListener.AcceptTcpClient();
+                    TcpClient connectedClient = serverListener.AcceptTcpClient();
                     ChatRoom chatRoom = new ChatRoom(connectedClient, userDictionary, this);
                 }
                 catch
@@ -127,18 +127,6 @@ namespace TCPChatRoomProjectServerSide
             }
         }
 
-        public static string ProcessClientRequest(TcpClient tcpclient)
-        {
-            
-            TcpClient client = tcpclient;
-            NetworkStream network = client.GetStream();
-            StreamReader reader = new StreamReader(client.GetStream());
-            string message = reader.ReadLine();
-            reader = null;
-
-            return message;
-            
-            
-        }
+        
     }
 }

@@ -11,7 +11,7 @@ namespace TCPChatRoomProjectServerSide
 {
     public class Listener
     {
-        public TcpListener serverListener = new TcpListener(IPAddress.Any, 8002);
+ 
 
     }
 }
