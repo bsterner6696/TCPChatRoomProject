@@ -101,8 +101,8 @@ namespace TCPChatRoomProjectServerSide
                 {
                     serverListener.Start();
 
-                    TcpClient connectedClient = serverListener.AcceptTcpClient();
-                    ChatRoom chatRoom = new ChatRoom(connectedClient, userDictionary, this);
+                    TcpClient user = serverListener.AcceptTcpClient();
+                    OpenChatRoomForUser(user);
                 }
                 catch
                 {
@@ -133,13 +133,12 @@ namespace TCPChatRoomProjectServerSide
             messageThread.Start();
             ConnectClients();
         }
-        public string ReadMessage(TcpClient tcpclient)
+        public string ReadMessage(TcpClient user)
         {
             try
             {
-                TcpClient client = tcpclient;
-                NetworkStream network = client.GetStream();
-                StreamReader reader = new StreamReader(client.GetStream());
+                NetworkStream network = user.GetStream();
+                StreamReader reader = new StreamReader(user.GetStream());
                 string message = reader.ReadLine();
                 reader = null;
 
@@ -147,13 +146,83 @@ namespace TCPChatRoomProjectServerSide
             }
             catch
             {
-                string userName = userDictionary.ClientsByNumber[tcpclient];
-                string leavingMessage = "EXIT";
-                
+                string userName = userDictionary.ClientsByNumber[user];
+                string leavingMessage = "EXIT";                
                 return leavingMessage;
             }
         }
+        public void OpenChatRoomForUser(TcpClient user)
+        {
 
-        
+            Thread chatThread = new Thread(() => EnterChat(user));
+            chatThread.Start();
+        }
+        private string GetNickName(TcpClient user)
+        {
+
+            SendSystemMessage(user, "Enter your name.");
+
+            return ReadMessage(user);
+        }
+
+        public void EnterChat(TcpClient user)
+        {
+
+            try
+            {
+                SendSystemMessage(user, "You're a real bugel boy.");
+                string nickName = GetNickName(user);
+                while (userDictionary.ClientsByName.ContainsKey(nickName))
+                {
+                    SendSystemMessage(user, "Enter a different name");
+                    nickName = GetNickName(user);
+                }
+                userDictionary.ClientsByName.Add(nickName, user);
+                userDictionary.ClientsByNumber.Add(user, nickName);
+                incomingMessages.Enqueue(nickName + " has joined the room");
+                Thread chatThread = new Thread(() => RunChat(nickName, user));
+                chatThread.Start();
+            }
+            catch
+            {
+
+            }
+
+
+        }
+
+        private void RunChat(string nickName, TcpClient user)
+        {
+
+            bool isOn = true;
+                string line = "";
+                while (isOn)
+                {
+                    line = ReadMessage(user);
+                    if (line == "EXIT")
+                    {
+                        userDictionary.ClientsByName.Remove(userDictionary.ClientsByNumber[user]);
+                        userDictionary.ClientsByNumber.Remove(user);
+                        SendSystemMessageToAll(nickName + " has left the chat.");
+                    isOn = false;
+                        try
+                        {
+                            user.Close();
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        line = FormatMessageWithNickName(nickName, line);
+                        incomingMessages.Enqueue(line);
+                    }
+
+                }
+
+        }
+
     }
 }
