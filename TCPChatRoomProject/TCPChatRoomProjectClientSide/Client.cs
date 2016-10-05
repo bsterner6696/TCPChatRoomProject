@@ -12,9 +12,17 @@ namespace TCPChatRoomProjectClientSide
 {
     class Client
     {
-        TcpClient client = new TcpClient("10.2.20.26", 8002);
+        private string serverIP;
+        private int port;
+        private TcpClient client;
         
-        public void WriteMessage()
+        public Client()
+        {
+            serverIP = "10.2.20.26";
+            port = 8002;
+            client = new TcpClient(serverIP, port);
+        }
+        private void WriteMessage()
         {
             NetworkStream network = client.GetStream();
             StreamWriter writer = new StreamWriter(client.GetStream());
@@ -23,7 +31,7 @@ namespace TCPChatRoomProjectClientSide
             writer.Flush();
             writer = null;
         }
-        public void ReadMessage()
+        private void ReadMessage()
         {
             NetworkStream network = client.GetStream();
             StreamReader reader = new StreamReader(client.GetStream());
@@ -35,7 +43,7 @@ namespace TCPChatRoomProjectClientSide
             }
             reader = null;
         }
-        public void WriteMessages()
+        private void WriteMessages()
         {
             while (true)
             {
@@ -43,7 +51,7 @@ namespace TCPChatRoomProjectClientSide
             }
         }
 
-        public void ReadMessages()
+        private void ReadMessages()
         {
             while (true)
             {
