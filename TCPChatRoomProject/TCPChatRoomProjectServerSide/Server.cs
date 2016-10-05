@@ -17,7 +17,8 @@ namespace TCPChatRoomProjectServerSide
         private TcpListener serverListener;
         private Queue<string> incomingMessages;
         private string localIPAddress;
-        private int port;       
+        private int port;
+        private DataLogger logger;       
         public Server()
         {
             localIPAddress = "10.2.20.26";
@@ -25,6 +26,7 @@ namespace TCPChatRoomProjectServerSide
             serverListener = new TcpListener(IPAddress.Parse(localIPAddress), port);
             userList = new UserList();
             incomingMessages = new Queue<string>();
+            logger = new DataLogger();
         }
         private string FormatMessageWithNickName(string nickName, string message)
         {
@@ -32,7 +34,7 @@ namespace TCPChatRoomProjectServerSide
             return textToSend;
         }
 
-        private void SendMessageToAll(string message)
+        private void SendMessageToAll(string message, DataLogger logger)
         {
             TcpClient[] users = new TcpClient[userList.ClientsByName.Count];
             userList.ClientsByName.Values.CopyTo(users, 0);
@@ -49,6 +51,8 @@ namespace TCPChatRoomProjectServerSide
                     userList.NamesByClient.Remove(users[number]);
                 }
             }
+            logger.AddToLog(message);
+            PrintLog();
         }
         private void SendMessage(TcpClient user, string message)
         {
@@ -63,7 +67,7 @@ namespace TCPChatRoomProjectServerSide
             catch
             {
                 string userName = userList.NamesByClient[user];
-                SendMessageToAll(userName + " has left the chat.");
+                SendMessageToAll(userName + " has left the chat.", logger);
                 userList.ClientsByName.Remove(userList.NamesByClient[user]);
                 userList.NamesByClient.Remove(user);
             }
@@ -97,12 +101,16 @@ namespace TCPChatRoomProjectServerSide
                 if (incomingMessages.Count != 0)
                 {
                     string line = incomingMessages.Dequeue();
-                    SendMessageToAll(line);
+                    SendMessageToAll(line, logger);
 
                 }
             }
         }
-
+        private void PrintLog()
+        {
+            Console.Clear();
+            Console.WriteLine(logger.GetLog());
+        }
         public void RunServer()
         {
             
@@ -178,7 +186,7 @@ namespace TCPChatRoomProjectServerSide
                     {
                         userList.ClientsByName.Remove(userList.NamesByClient[user]);
                         userList.NamesByClient.Remove(user);
-                        SendMessageToAll(nickName + " has left the chat.");
+                        SendMessageToAll(nickName + " has left the chat.", logger);
                     isOn = false;
                         try
                         {
