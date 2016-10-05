@@ -12,7 +12,7 @@ namespace TCPChatRoomProjectClientSide
 {
     class Client
     {
-        TcpClient client = new TcpClient("10.2.20.18", 8002);
+        TcpClient client = new TcpClient("10.2.20.26", 8002);
         
         public void WriteMessage()
         {

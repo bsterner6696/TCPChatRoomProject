@@ -45,8 +45,8 @@ namespace TCPChatRoomProjectServerSide
                 }
                 dictionary.ClientsByName.Add(nickName, client);
                 dictionary.ClientsByNumber.Add(client, nickName);
-                server.SendSystemMessageToAll(nickName + " has joined the room");
-                Thread chatThread = new Thread(() => RunChat(server, nickName, client));
+                server.incomingMessages.Enqueue(nickName + " has joined the room");
+                Thread chatThread = new Thread(() => RunChat(server, nickName, client, dictionary));
                 chatThread.Start();
             }
             catch
@@ -57,7 +57,7 @@ namespace TCPChatRoomProjectServerSide
 
         }
 
-        private void RunChat(Server server, string nickName, TcpClient client)
+        private void RunChat(Server server, string nickName, TcpClient client, UserDictionary dictionary)
         {
             try
             {
@@ -65,12 +65,31 @@ namespace TCPChatRoomProjectServerSide
                 while (true)
                 {
                     line = server.ReadMessage(client);
-                    server.SendMessageToAll(nickName, line);
+                    if (line == "EXIT")
+                    {
+                        dictionary.ClientsByName.Remove(dictionary.ClientsByNumber[client]);
+                        dictionary.ClientsByNumber.Remove(client);
+                        server.SendSystemMessageToAll(nickName + " has left the chat.");
+                        try
+                        {
+                            client.Close();
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        line = server.FormatMessageWithNickName(nickName, line);
+                        server.incomingMessages.Enqueue(line);
+                    }
+                    
                 }
             }
             catch (Exception e44)
             {
-                Console.WriteLine(e44);
+                
             }
         }
     }

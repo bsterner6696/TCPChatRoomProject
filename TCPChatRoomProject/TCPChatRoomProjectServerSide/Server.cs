@@ -14,7 +14,8 @@ namespace TCPChatRoomProjectServerSide
     public class Server
     {
         UserDictionary userDictionary = new UserDictionary();
-        TcpListener serverListener = new TcpListener(IPAddress.Any, 8002);
+        TcpListener serverListener = new TcpListener(IPAddress.Parse("10.2.20.26"), 8002);
+        public Queue<string> incomingMessages = new Queue<string>();
 
         public void SendMessageToAll(string nickName, string message)
         {
@@ -46,6 +47,12 @@ namespace TCPChatRoomProjectServerSide
             writer.Flush();
             writer = null;
 
+        }
+
+        public string FormatMessageWithNickName(string nickName, string message)
+        {
+            string textToSend = nickName + ": " + message;
+            return textToSend;
         }
 
         public void SendSystemMessageToAll(string message)
@@ -105,6 +112,27 @@ namespace TCPChatRoomProjectServerSide
             }
         }
 
+        public void RunThroughQueue()
+        {
+            while (true)
+            {
+               
+                if (incomingMessages.Count != 0)
+                {
+                    string line = incomingMessages.Dequeue();
+                    SendSystemMessageToAll(line);
+
+                }
+            }
+        }
+
+        public void RunServer()
+        {
+            
+            Thread messageThread = new Thread(RunThroughQueue);
+            messageThread.Start();
+            ConnectClients();
+        }
         public string ReadMessage(TcpClient tcpclient)
         {
             try
@@ -120,9 +148,8 @@ namespace TCPChatRoomProjectServerSide
             catch
             {
                 string userName = userDictionary.ClientsByNumber[tcpclient];
-                string leavingMessage = userName + " has left the chat.";
-                userDictionary.ClientsByName.Remove(userDictionary.ClientsByNumber[tcpclient]);
-                userDictionary.ClientsByNumber.Remove(tcpclient);
+                string leavingMessage = "EXIT";
+                
                 return leavingMessage;
             }
         }
