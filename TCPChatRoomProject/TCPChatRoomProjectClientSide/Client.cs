@@ -12,15 +12,11 @@ namespace TCPChatRoomProjectClientSide
 {
     class Client
     {
-        private string serverIP;
-        private int port;
         private TcpClient client;
         
-        public Client()
+        public Client(string IP, int port)
         {
-            serverIP = "10.2.20.26";
-            port = 8002;
-            client = new TcpClient(serverIP, port);
+            client = new TcpClient(IP, port);
         }
         private void WriteMessage()
         {

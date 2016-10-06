@@ -7,17 +7,19 @@ using System.IO;
 
 namespace TCPChatRoomProjectServerSide
 {
-    public class DataLogger
+    public class TextLogger : ILoggable
     {
         private DateTime timeOfLog;
         private string logFile;
+        private string errorLogFile;
 
-        public DataLogger()
+        public TextLogger(string logFile, string errorLogFile)
         {
-            logFile = "dataLog.txt";
+            this.logFile = logFile;
+            this.errorLogFile = errorLogFile;
         }
 
-        public string GetMessageWithDateAndTime(string message)
+        private string GetMessageWithDateAndTime(string message)
         {
             timeOfLog = DateTime.Now;
             string newMessage = timeOfLog.ToString() + " : " + message;
@@ -37,6 +39,23 @@ namespace TCPChatRoomProjectServerSide
             {
 
                 Console.WriteLine("An error occurred while trying to write to {0}", logFile);
+            } 
+            
+        }
+
+        public void AddToErrorLog(string message)
+        {
+            try
+            {
+                StreamWriter writer;
+                writer = new StreamWriter(errorLogFile, true);
+                writer.WriteLine(GetMessageWithDateAndTime(message));
+                writer.Close();
+            }
+            catch
+            {
+
+                Console.WriteLine("An error occurred while trying to write to {0}", errorLogFile);
             }
         }
 

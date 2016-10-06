@@ -10,7 +10,8 @@ namespace TCPChatRoomProjectServerSide
     {
         static void Main(string[] args)
         {
-            Server server = new Server();
+            TextLogger logger = new TextLogger("log.txt", "errorLog.txt");
+            Server server = new Server(logger, "10.2.20.26", 8002);
             server.RunServer();
         }
     }

@@ -7,52 +7,48 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections;
 
 namespace TCPChatRoomProjectServerSide
 {
     public class Server
     {
-        private UserList userList;
         private TcpListener serverListener;
-        private Queue<string> incomingMessages;
+        private Queue<string> messages;
         private string localIPAddress;
         private int port;
-        private DataLogger logger;       
-        public Server()
+        private ILoggable logger;
+        private Dictionary<TcpClient, string> clients;    
+        public Server(ILoggable logger, string IP, int port)
         {
-            localIPAddress = "10.2.20.26";
-            port = 8002;
-            serverListener = new TcpListener(IPAddress.Parse(localIPAddress), port);
-            userList = new UserList();
-            incomingMessages = new Queue<string>();
-            logger = new DataLogger();
+            localIPAddress = IP;
+            this.port = port;
+            
+            messages = new Queue<string>();
+            this.logger = logger;
+            clients = new Dictionary<TcpClient, string>();
         }
-        private string FormatMessageWithNickName(string nickName, string message)
+        private string FormatMessage(string nickName, string message)
         {
             string textToSend = nickName + ": " + message;
             return textToSend;
         }
 
-        private void SendMessageToAll(string message, DataLogger logger)
+        private void SendMessageToAll(string message)
         {
-            TcpClient[] users = new TcpClient[userList.ClientsByName.Count];
-            userList.ClientsByName.Values.CopyTo(users, 0);
-            for (int number = 0; number < users.Length; number++)
+
+            foreach (TcpClient user in clients.Keys)
             {
                 try
                 {
-                    SendMessage(users[number], message);
+                    SendMessage(user, message);
 
                 }
                 catch
                 {
-                    userList.ClientsByName.Remove(userList.NamesByClient[users[number]]);
-                    userList.NamesByClient.Remove(users[number]);
+                    clients.Remove(user);
                 }
             }
-            logger.AddToLog(message);
-            PrintLog();
+            LogMessage(message);
         }
         private void SendMessage(TcpClient user, string message)
         {
@@ -66,16 +62,22 @@ namespace TCPChatRoomProjectServerSide
             }
             catch
             {
-                string userName = userList.NamesByClient[user];
-                SendMessageToAll(userName + " has left the chat.", logger);
-                userList.ClientsByName.Remove(userList.NamesByClient[user]);
-                userList.NamesByClient.Remove(user);
+                string userName = clients[user];
+                SendMessageToAll(userName + " has left the chat.");
+                clients.Remove(user);
             }
+        }
 
+        public void LogMessage(string message)
+        {
+            logger.AddToLog(message);
+            Console.Clear();
+            Console.WriteLine(logger.GetLog());
         }
 
         private void ConnectClients()
         {
+            serverListener = new TcpListener(IPAddress.Parse(localIPAddress), port);
             while (true)
             {
                 try
@@ -98,24 +100,20 @@ namespace TCPChatRoomProjectServerSide
             while (true)
             {
                
-                if (incomingMessages.Count != 0)
+                if (messages.Count != 0)
                 {
-                    string line = incomingMessages.Dequeue();
-                    SendMessageToAll(line, logger);
+                    string line = messages.Dequeue();
+                    SendMessageToAll(line);
 
                 }
             }
         }
-        private void PrintLog()
-        {
-            Console.Clear();
-            Console.WriteLine(logger.GetLog());
-        }
+
         public void RunServer()
         {
             
-            Thread messageThread = new Thread(RunThroughQueue);
-            messageThread.Start();
+            Thread message = new Thread(RunThroughQueue);
+            message.Start();
             ConnectClients();
         }
         private string ReadMessage(TcpClient user)
@@ -131,7 +129,7 @@ namespace TCPChatRoomProjectServerSide
             }
             catch
             {
-                string userName = userList.NamesByClient[user];
+                string userName = clients[user];
                 string leavingMessage = "EXIT";                
                 return leavingMessage;
             }
@@ -139,8 +137,8 @@ namespace TCPChatRoomProjectServerSide
         private void OpenChatRoomForUser(TcpClient user)
         {
 
-            Thread chatThread = new Thread(() => BeginChat(user));
-            chatThread.Start();
+            Thread chat = new Thread(() => BeginChat(user));
+            chat.Start();
         }
         private string GetNickName(TcpClient user)
         {
@@ -157,53 +155,52 @@ namespace TCPChatRoomProjectServerSide
                 string welcomeMessage = "Welcome to the chat room.";
                 SendMessage(user, welcomeMessage);
                 string nickName = GetNickName(user);
-                while (userList.ClientsByName.ContainsKey(nickName))
+                while (clients.ContainsValue(nickName))
                 {
                     SendMessage(user, "Enter a different name");
                     nickName = GetNickName(user);
                 }
-                userList.ClientsByName.Add(nickName, user);
-                userList.NamesByClient.Add(user, nickName);
-                incomingMessages.Enqueue(nickName + " has joined the room");
-                Thread chatThread = new Thread(() => RunChat(nickName, user));
-                chatThread.Start();
+                clients.Add(user, nickName);
+                messages.Enqueue(nickName + " has joined the room");
+                Thread chat = new Thread(() => RunChat(user));
+                chat.Start();
             }
-            catch
+            catch(Exception e)
             {
-
+                logger.AddToErrorLog(e.Message);
+                Console.WriteLine("Exception encountered and logged.");
             }
         }
 
-        private void RunChat(string nickName, TcpClient user)
+        private void RunChat(TcpClient user)
         {
-
+            string nickName = clients[user];
             bool isOn = true;
-                string line = "";
-                while (isOn)
+            string line = "";
+            while (isOn)
+            {
+                line = ReadMessage(user);
+                if (line == "EXIT")
                 {
-                    line = ReadMessage(user);
-                    if (line == "EXIT")
-                    {
-                        userList.ClientsByName.Remove(userList.NamesByClient[user]);
-                        userList.NamesByClient.Remove(user);
-                        SendMessageToAll(nickName + " has left the chat.", logger);
+                    clients.Remove(user);
+                    SendMessageToAll(nickName + " has left the chat.");
                     isOn = false;
-                        try
-                        {
-                            user.Close();
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-                    else
+                    try
                     {
-                        line = FormatMessageWithNickName(nickName, line);
-                        incomingMessages.Enqueue(line);
+                        user.Close();
                     }
-
+                    catch
+                    {
+                        continue;
+                    }
                 }
+                else
+                {
+                    line = FormatMessage(nickName, line);
+                    messages.Enqueue(line);
+                }
+
+            }
         }
 
     }
