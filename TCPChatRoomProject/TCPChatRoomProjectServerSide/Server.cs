@@ -22,7 +22,6 @@ namespace TCPChatRoomProjectServerSide
         {
             localIPAddress = IP;
             this.port = port;
-            
             messages = new Queue<string>();
             this.logger = logger;
             clients = new Dictionary<TcpClient, string>();
@@ -140,12 +139,7 @@ namespace TCPChatRoomProjectServerSide
             Thread chat = new Thread(() => BeginChat(user));
             chat.Start();
         }
-        private string GetNickName(TcpClient user)
-        {
-
-            SendMessage(user, "Enter your name.");
-            return ReadMessage(user);
-        }
+        
 
         private void BeginChat(TcpClient user)
         {
@@ -170,6 +164,13 @@ namespace TCPChatRoomProjectServerSide
                 logger.AddToErrorLog(e.Message);
                 Console.WriteLine("Exception encountered and logged.");
             }
+        }
+
+        private string GetNickName(TcpClient user)
+        {
+
+            SendMessage(user, "Enter your name.");
+            return ReadMessage(user);
         }
 
         private void RunChat(TcpClient user)
