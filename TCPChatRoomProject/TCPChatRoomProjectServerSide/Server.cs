@@ -53,7 +53,6 @@ namespace TCPChatRoomProjectServerSide
         {
             try
             {
-                NetworkStream network = user.GetStream();
                 StreamWriter writer = new StreamWriter(user.GetStream());
                 writer.WriteLine(message);
                 writer.Flush();
@@ -119,7 +118,6 @@ namespace TCPChatRoomProjectServerSide
         {
             try
             {
-                NetworkStream network = user.GetStream();
                 StreamReader reader = new StreamReader(user.GetStream());
                 string message = reader.ReadLine();
                 reader = null;
@@ -149,7 +147,7 @@ namespace TCPChatRoomProjectServerSide
                 string welcomeMessage = "Welcome to the chat room.";
                 SendMessage(user, welcomeMessage);
                 string nickName = GetNickName(user);
-                while (clients.ContainsValue(nickName))
+                while (clients.ContainsValue(nickName) || nickName == "EXIT" || nickName == "PM")
                 {
                     SendMessage(user, "Enter a different name");
                     nickName = GetNickName(user);
@@ -177,6 +175,9 @@ namespace TCPChatRoomProjectServerSide
         {
             string nickName = clients[user];
             bool isOn = true;
+            bool isPrivate = false;
+            bool userChosen = false;
+            TcpClient targetUser = user;
             string line = "";
             while (isOn)
             {
@@ -195,6 +196,28 @@ namespace TCPChatRoomProjectServerSide
                         continue;
                     }
                 }
+                else if (line == "PM")
+                {
+                    SendMessage(user, "Enter desired recipient");
+                    isPrivate = true;
+                 }
+                else if (isPrivate == true && clients.ContainsValue(line))
+                {
+                    TcpClient target = clients.First(x => x.Value.Contains(line)).Key;
+                    userChosen = true;
+                    targetUser = target;
+                }
+                else if (isPrivate == true && line == "CANCEL")
+                {
+                    isPrivate = false;
+                    userChosen = false;
+                }
+                else if (userChosen == true)
+                {
+                    SendMessage(targetUser, nickName + " sent: " + line);
+                    userChosen = false;
+                    isPrivate = false;
+                }
                 else
                 {
                     line = FormatMessage(nickName, line);
@@ -203,6 +226,8 @@ namespace TCPChatRoomProjectServerSide
 
             }
         }
+
+        
 
     }
 }

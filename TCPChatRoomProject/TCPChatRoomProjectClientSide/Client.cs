@@ -20,7 +20,6 @@ namespace TCPChatRoomProjectClientSide
         }
         private void WriteMessage()
         {
-            NetworkStream network = client.GetStream();
             StreamWriter writer = new StreamWriter(client.GetStream());
             string message = Console.ReadLine();
             writer.WriteLine(message);
@@ -29,7 +28,6 @@ namespace TCPChatRoomProjectClientSide
         }
         private void ReadMessage()
         {
-            NetworkStream network = client.GetStream();
             StreamReader reader = new StreamReader(client.GetStream());
             string message = "";
             message = reader.ReadLine();
