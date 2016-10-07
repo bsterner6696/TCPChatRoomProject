@@ -10,7 +10,7 @@ namespace TCPChatRoomProjectClientSide
     {
         static void Main(string[] args)
         {
-            Client client = new Client("10.2.20.26", 8002);
+            Client client = new Client("10.2.20.27", 8002);
             client.RunClient();
         }
     }
